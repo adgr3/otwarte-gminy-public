@@ -1,0 +1,24 @@
+/**
+ * Public Worker deployment configuration WITHOUT a domain or Workers Route.
+ *
+ * Used only to bring `otwartegminy-public` into existence at a workers.dev
+ * address for verification, BEFORE any traffic is moved. The production
+ * cutover adds a Workers Route (`pruszkow.otwartegminy.pl/*`) in a separate,
+ * explicitly authorised step; this file never declares one.
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "otwartegminy-public",
+  "main": "static-worker/public.js",
+  "compatibility_date": "2026-10-18",
+  "assets": {
+    "directory": "./static-out-public",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "html_handling": "none",
+    "not_found_handling": "none"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

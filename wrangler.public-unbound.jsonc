@@ -1,0 +1,26 @@
+/**
+ * PROPOSED one-time pre-staging configuration. Not used by any deployment CI.
+ * Creates a distinct production-code Worker script WITHOUT attaching a route,
+ * custom domain, or workers.dev hostname.
+ *
+ * IMPORTANT: only deploy after separate operator approval and a fresh
+ * read-only assertion that this Worker does not already exist. NEVER reuse
+ * this file as the deployment config after a live route is attached.
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "otwartegminy-public",
+  "main": "static-worker/public.js",
+  "compatibility_date": "2026-10-18",
+  "workers_dev": false,
+  "assets": {
+    "directory": "./static-out-public",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "html_handling": "none",
+    "not_found_handling": "none"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

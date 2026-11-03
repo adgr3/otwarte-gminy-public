@@ -1,0 +1,3 @@
+# Downloaded production data must never be committed.
+/data/live/
+__pycache__/
