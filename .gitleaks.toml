@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "synthetic public sample (no production data)"
+paths = ['''data/sample/registry-sample.json''']

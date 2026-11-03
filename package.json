@@ -1,0 +1,44 @@
+{
+  "name": "otwarte-gminy",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "static:publish": "node scripts/static/publish.mjs",
+    "static:links": "node scripts/static/check-links.mjs --sample 40",
+    "static:preflight:public": "node scripts/static/cf-public-preflight.mjs"
+  },
+  "dependencies": {
+    "next": "^16.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-server-dom-webpack": "^19.3.1",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^2.0.0-beta.v.1",
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vinext/cloudflare": "^1.1.1",
+    "@vitejs/plugin-react": "^6.1.2",
+    "@vitejs/plugin-rsc": "^0.5.38",
+    "cf": "^1.0.0-beta.18",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^16.0.0",
+    "postcss": "^8.5.30",
+    "tailwindcss": "^4.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vinext": "^1.2.1",
+    "vite": "^8.3.0",
+    "vite-css-modules": "^1.16.0",
+    "wrangler": "^4.151.1"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "unrs-resolver@1.12.2": true,
+    "workerd@1.20261012.1": true
+  },
+  "type": "module"
+}

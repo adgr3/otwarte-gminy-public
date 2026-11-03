@@ -1,0 +1,29 @@
+/**
+ * Public release-candidate Worker configuration (Sprint #018).
+ *
+ * This Worker does not exist yet. Deploying it is a separate, explicitly
+ * authorised operation; nothing in CI deploys it, and `main`/preview keep their
+ * own configuration.
+ *
+ * `run_worker_first: true` keeps the HIDDEN-path guard and the security headers
+ * on every asset, including HTML, CSS and JSON.
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "otwartegminy-public",
+  "main": "static-worker/public.js",
+  "compatibility_date": "2026-10-18",
+  "routes": [
+    { "pattern": "pruszkow.otwartegminy.pl", "custom_domain": true }
+  ],
+  "assets": {
+    "directory": "./static-out-public",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "html_handling": "none",
+    "not_found_handling": "none"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

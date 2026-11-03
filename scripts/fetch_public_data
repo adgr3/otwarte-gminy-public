@@ -1,0 +1,124 @@
+#!/usr/bin/env python3
+"""Fetch the current public registry into a git-ignored local directory.
+
+The repository never contains the full production data.  This script downloads
+the two public endpoints, verifies the written bytes with SHA-256, checks the
+registry/meta counts, and writes `SHA256SUMS`.  A subsequent run verifies the
+new download against the previous checksum file unless --update is passed.
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+BASE = "https://pruszkow.otwartegminy.pl"
+FILES = ("registry.json", "meta.json")
+ROOT = Path(__file__).resolve().parents[1]
+DATA_DIR = ROOT / "data" / "live"
+SUMS = DATA_DIR / "SHA256SUMS"
+
+
+def sha256(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def curl() -> str:
+    exe = os.environ.get("CURL", "")
+    if exe:
+        return exe
+    for name in ("curl.exe", "curl"):
+        from shutil import which
+
+        found = which(name)
+        if found:
+            return found
+    raise SystemExit("FAIL: curl not found; set CURL or install curl")
+
+
+def download(name: str) -> Path:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    dst = DATA_DIR / name
+    url = f"{BASE}/data/{name}"
+    proc = subprocess.run(
+        [
+            curl(),
+            "-f",
+            "-L",
+            "--retry",
+            "3",
+            "--retry-delay",
+            "2",
+            "-sS",
+            "-A",
+            "Mozilla/5.0",
+            "-o",
+            str(dst),
+            url,
+        ],
+        text=True,
+        capture_output=True,
+    )
+    if proc.returncode != 0:
+        print(proc.stderr, file=sys.stderr)
+        raise SystemExit(f"FAIL: download failed: {url}")
+    return dst
+
+
+def read_sums() -> dict[str, str]:
+    if not SUMS.exists():
+        return {}
+    sums = {}
+    for line in SUMS.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        digest, _, name = line.partition("  ")
+        if name:
+            sums[name] = digest
+    return sums
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--update", action="store_true", help="replace an existing checksum file")
+    args = parser.parse_args()
+
+    previous = {} if args.update else read_sums()
+    paths = {name: download(name) for name in FILES}
+
+    digests = {name: sha256(path) for name, path in paths.items()}
+    for name, digest in digests.items():
+        expected = previous.get(name)
+        if expected and digest != expected:
+            raise SystemExit(f"FAIL: SHA-256 mismatch for {name}: expected {expected}, got {digest}")
+
+    registry = json.loads(paths["registry.json"].read_text(encoding="utf-8"))
+    meta = json.loads(paths["meta.json"].read_text(encoding="utf-8"))
+    rows = registry.get("rows")
+    if not isinstance(rows, list):
+        raise SystemExit("FAIL: registry.json has no rows array")
+    total = meta.get("counts", {}).get("total")
+    if total is not None and len(rows) != total:
+        raise SystemExit(f"FAIL: registry rows {len(rows)} != meta total {total}")
+    if registry.get("generationId") != meta.get("generationId"):
+        raise SystemExit("FAIL: registry/meta generationId mismatch")
+
+    SUMS.write_text("".join(f"{digests[n]}  {n}\n" for n in FILES), encoding="utf-8")
+    print(f"data: {DATA_DIR}")
+    print(f"registry: {len(rows)} rows, generation {registry.get('generationId')}")
+    for name in FILES:
+        print(f"SHA256 {digests[name]}  {name}")
+    print("status: PASS (data/live is git-ignored)")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
